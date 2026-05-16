@@ -1,11 +1,11 @@
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createObjective, deleteObjective } from "@/lib/actions/catalog";
 import { DeleteItemButton } from "@/components/admin/DeleteItemButton";
 import { Plus, Target } from "lucide-react";
 
 export default async function ObjectivesPage() {
-  const supabase = await createClient();
-  const { data: objectives } = await supabase
+  const admin = createAdminClient();
+  const { data: objectives } = await admin
     .from("objectives")
     .select("id, name, slug, created_at")
     .order("name");

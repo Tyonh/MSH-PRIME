@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { Search, ShoppingBag } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
+import { useCart } from "@/context/CartContext";
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
+  const { totalItems, toggleCart } = useCart();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -25,7 +27,7 @@ export default function Navbar() {
             MSH <span className="text-brand-blue-light">PRIME</span>
           </span>
           <span className="text-[10px] font-black tracking-[0.2em] text-white/60 uppercase leading-none mt-1 group-hover:text-brand-blue-light transition-colors">
-            Performance System
+            Suplementos
           </span>
         </Link>
 
@@ -34,7 +36,6 @@ export default function Navbar() {
             { label: "Início", href: "/" },
             { label: "Produtos", href: "/produtos" },
             { label: "Objetivos", href: "/objetivos" },
-            { label: "Sobre", href: "/sobre" },
           ].map((item) => (
             <Link
               key={item.label}
@@ -48,20 +49,20 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-6">
-          <button className="text-white hover:text-brand-blue transition-colors">
-            <Search className="h-6 w-6" />
+          <button
+            onClick={toggleCart}
+            className="text-white hover:text-brand-blue transition-colors flex items-center gap-2 relative"
+          >
+            <ShoppingCart className="h-6 w-6" />
+            <span className="hidden md:inline font-black text-xs uppercase italic tracking-widest">
+              Carrinho
+            </span>
+            {totalItems > 0 && (
+              <span className="absolute -top-2 -right-2 md:static bg-brand-red text-white text-[10px] font-black h-5 w-5 flex items-center justify-center">
+                {totalItems}
+              </span>
+            )}
           </button>
-          <div className="relative">
-            <button className="text-white hover:text-brand-blue transition-colors flex items-center gap-2">
-              <ShoppingBag className="h-6 w-6" />
-              <span className="hidden md:inline font-black text-xs uppercase italic tracking-widest">
-                Meu Carrinho
-              </span>
-              <span className="bg-brand-red text-white text-[10px] font-black h-5 w-5 flex items-center justify-center rounded-none skew-x-[-15deg]">
-                0
-              </span>
-            </button>
-          </div>
         </div>
       </div>
     </nav>

@@ -13,7 +13,7 @@ export default function Footer() {
                 MSH <span className="text-brand-blue-light">PRIME</span>
               </span>
               <span className="text-[10px] font-black tracking-[0.3em] text-zinc-500 uppercase mt-1">
-                Performance System
+                Suplementos
               </span>
             </Link>
             <p className="text-zinc-400 text-sm font-medium leading-relaxed max-w-sm">
@@ -47,7 +47,6 @@ export default function Footer() {
                 { label: "Início", href: "/" },
                 { label: "Produtos", href: "/produtos" },
                 { label: "Objetivos", href: "/objetivos" },
-                { label: "Sobre", href: "/sobre" },
               ].map((link) => (
                 <li key={link.label}>
                   <Link

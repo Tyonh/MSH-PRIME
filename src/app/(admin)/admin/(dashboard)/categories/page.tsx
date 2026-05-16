@@ -1,11 +1,11 @@
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createCategory, deleteCategory } from "@/lib/actions/catalog";
 import { DeleteItemButton } from "@/components/admin/DeleteItemButton";
 import { Plus, Tag } from "lucide-react";
 
 export default async function CategoriesPage() {
-  const supabase = await createClient();
-  const { data: categories } = await supabase
+  const admin = createAdminClient();
+  const { data: categories } = await admin
     .from("categories")
     .select("id, name, slug, created_at")
     .order("name");

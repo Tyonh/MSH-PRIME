@@ -1,11 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Plus, Search, Package, AlertCircle, Star } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { ProductActions } from "@/components/admin/ProductActions";
 
 export default async function AdminProductsPage() {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   // Busca produtos com imagem principal e categoria
   const { data: products, error } = await supabase

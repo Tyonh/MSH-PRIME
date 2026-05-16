@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
 
 const toSlug = (str: string) =>
@@ -14,45 +14,60 @@ const toSlug = (str: string) =>
 
 // ── CATEGORIES ──────────────────────────────────
 export async function createCategory(formData: FormData) {
-  const supabase = await createClient();
+  const admin = createAdminClient();
   const name = formData.get("name") as string;
-  const { error } = await supabase.from("categories").insert([{ name, slug: toSlug(name) }]);
-  if (error) return { error: error.message };
+  if (!name || !name.trim()) return { error: "Nome é obrigatório" };
+
+  const { error } = await admin.from("categories").insert([{ name: name.trim(), slug: toSlug(name) }]);
+  if (error) {
+    console.error("❌ Erro ao criar categoria:", error.message);
+    return { error: error.message };
+  }
   revalidatePath("/admin/categories");
 }
 
 export async function deleteCategory(id: string) {
-  const supabase = await createClient();
-  await supabase.from("categories").delete().eq("id", id);
+  const admin = createAdminClient();
+  await admin.from("categories").delete().eq("id", id);
   revalidatePath("/admin/categories");
 }
 
 // ── BRANDS ──────────────────────────────────────
 export async function createBrand(formData: FormData) {
-  const supabase = await createClient();
+  const admin = createAdminClient();
   const name = formData.get("name") as string;
-  const { error } = await supabase.from("brands").insert([{ name, slug: toSlug(name) }]);
-  if (error) return { error: error.message };
+  if (!name || !name.trim()) return { error: "Nome é obrigatório" };
+
+  const { error } = await admin.from("brands").insert([{ name: name.trim(), slug: toSlug(name) }]);
+  if (error) {
+    console.error("❌ Erro ao criar marca:", error.message);
+    return { error: error.message };
+  }
   revalidatePath("/admin/brands");
 }
 
 export async function deleteBrand(id: string) {
-  const supabase = await createClient();
-  await supabase.from("brands").delete().eq("id", id);
+  const admin = createAdminClient();
+  await admin.from("brands").delete().eq("id", id);
   revalidatePath("/admin/brands");
 }
 
 // ── OBJECTIVES ──────────────────────────────────
 export async function createObjective(formData: FormData) {
-  const supabase = await createClient();
+  const admin = createAdminClient();
   const name = formData.get("name") as string;
-  const { error } = await supabase.from("objectives").insert([{ name, slug: toSlug(name) }]);
-  if (error) return { error: error.message };
+  if (!name || !name.trim()) return { error: "Nome é obrigatório" };
+
+  const { error } = await admin.from("objectives").insert([{ name: name.trim(), slug: toSlug(name) }]);
+  if (error) {
+    console.error("❌ Erro ao criar objetivo:", error.message);
+    return { error: error.message };
+  }
   revalidatePath("/admin/objectives");
 }
 
 export async function deleteObjective(id: string) {
-  const supabase = await createClient();
-  await supabase.from("objectives").delete().eq("id", id);
+  const admin = createAdminClient();
+  await admin.from("objectives").delete().eq("id", id);
   revalidatePath("/admin/objectives");
 }

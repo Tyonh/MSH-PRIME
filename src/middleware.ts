@@ -67,8 +67,11 @@ export async function middleware(request: NextRequest) {
 
     const { data: { user } } = await supabase.auth.getUser()
 
-    // Se estiver tentando acessar o painel admin sem estar logado
-    if (!user && request.nextUrl.pathname !== '/admin/login') {
+    // Se estiver tentando acessar o painel admin sem estar logado (exceto login e registro)
+    if (!user && 
+        request.nextUrl.pathname !== '/admin/login' && 
+        request.nextUrl.pathname !== '/admin/register'
+    ) {
       return NextResponse.redirect(new URL('/admin/login', request.url))
     }
 

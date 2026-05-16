@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { 
+  LayoutDashboard,
   Package, 
   Tag, 
   Settings, 
@@ -17,6 +18,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const menuItems = [
+    { name: "Dashboard",   href: "/admin/dashboard",  icon: LayoutDashboard },
     { name: "Produtos",    href: "/admin/products",   icon: Package          },
     { name: "Categorias",  href: "/admin/categories", icon: Tag              },
     { name: "Marcas",      href: "/admin/brands",     icon: Settings         },

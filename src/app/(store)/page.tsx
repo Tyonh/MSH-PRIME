@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowRight,
-  Plus,
   CheckCircle2,
   Truck,
   MessageCircle,
@@ -12,32 +11,33 @@ import {
   Dumbbell,
   Target,
 } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { AddToCartButton } from "@/components/store/AddToCartButton";
 
-const categories = [
-  { name: "Proteínas",      icon: Dumbbell, color: "bg-brand-blue", href: "/produtos?objetivo=proteinas" },
-  { name: "Energia",        icon: Zap,      color: "bg-yellow-500", href: "/produtos?objetivo=energia"   },
-  { name: "Emagrecimento",  icon: Flame,    color: "bg-brand-red",  href: "/produtos?objetivo=emagrecimento" },
-  { name: "Ganho de Massa", icon: Target,   color: "bg-purple-600", href: "/produtos?objetivo=massa"     },
+const quickCategories = [
+  { name: "Proteínas",      icon: Dumbbell, color: "bg-brand-blue", href: "/produtos" },
+  { name: "Energia",        icon: Zap,      color: "bg-yellow-500", href: "/produtos" },
+  { name: "Emagrecimento",  icon: Flame,    color: "bg-brand-red",  href: "/produtos" },
+  { name: "Ganho de Massa", icon: Target,   color: "bg-purple-600", href: "/produtos" },
 ];
 
 const trustBadges = [
-  { title: "Originalidade", desc: "Produtos com Garantia",   icon: CheckCircle2   },
-  { title: "Logística",     desc: "Entrega em Fortaleza e Região Metropolitana",  icon: Truck           },
-  { title: "Atendimento",   desc: "Suporte Especializado",   icon: MessageCircle   },
-  { title: "Segurança",     desc: "Compra 100% Protegida",   icon: Shield          },
+  { title: "Originalidade", desc: "Produtos com Garantia",                       icon: CheckCircle2 },
+  { title: "Logística",     desc: "Entrega em Fortaleza e Região Metropolitana", icon: Truck        },
+  { title: "Atendimento",   desc: "Suporte Especializado",                       icon: MessageCircle },
+  { title: "Segurança",     desc: "Compra 100% Protegida",                       icon: Shield       },
 ];
 
 export default async function HomePage() {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
-  // Busca apenas produtos em destaque, visíveis, com imagem principal
   const { data: featuredProducts } = await supabase
     .from("products")
     .select(`
       id,
       name,
       price,
+      price_pix,
       stock_quantity,
       product_images ( image_url, display_order )
     `)
@@ -66,8 +66,8 @@ export default async function HomePage() {
               Alta Performance
             </span>
             <h1 className="text-7xl md:text-9xl font-black text-white leading-none mb-6 italic tracking-tighter">
-              FUEL YOUR<br />
-              <span className="text-brand-blue-light">EVOLUTION</span>
+              ELEVE SEU<br />
+              <span className="text-brand-blue-light">NÍVEL</span>
             </h1>
             <p className="text-lg text-zinc-300 mb-10 font-medium leading-relaxed max-w-lg not-italic normal-case tracking-normal">
               Suplementação de elite para quem não aceita mediocridade. Resultados reais, produtos originais.
@@ -95,7 +95,7 @@ export default async function HomePage() {
             <h2 className="text-5xl font-black italic tracking-tighter text-zinc-950 mt-2">Categorias</h2>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {categories.map((cat) => (
+            {quickCategories.map((cat) => (
               <Link key={cat.name} href={cat.href} className="group bg-white p-8 flex flex-col items-center text-center hover:bg-zinc-950 transition-all duration-300 shadow-sm hover:shadow-2xl">
                 <div className={`${cat.color} p-5 mb-5 group-hover:scale-110 transition-transform`}>
                   <cat.icon className="h-8 w-8 text-white" />
@@ -140,12 +140,11 @@ export default async function HomePage() {
             </Link>
           </div>
 
-          {/* Produtos do banco */}
           {featuredProducts && featuredProducts.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {featuredProducts.map((product) => {
                 const imgs = (product.product_images as { image_url: string; display_order: number }[]) ?? [];
-                const mainImg = imgs.sort((a, b) => a.display_order - b.display_order)[0]?.image_url;
+                const mainImg = imgs.sort((a, b) => a.display_order - b.display_order)[0]?.image_url ?? null;
                 return (
                   <div key={product.id} className="group bg-white flex flex-col shadow-sm hover:shadow-xl transition-all border-b-4 border-transparent hover:border-brand-blue">
                     <div className="relative aspect-square overflow-hidden bg-zinc-50">
@@ -162,47 +161,55 @@ export default async function HomePage() {
                           <Dumbbell className="h-16 w-16 text-zinc-300" />
                         </div>
                       )}
-                      {product.stock_quantity < 5 && product.stock_quantity > 0 && (
-                        <div className="absolute bottom-3 left-3 right-3 bg-orange-500/90 py-1.5 text-center">
-                          <span className="text-white text-[10px] font-black uppercase italic tracking-widest">
-                            Restam {product.stock_quantity} un!
-                          </span>
-                        </div>
-                      )}
                     </div>
                     <div className="p-6 flex flex-col flex-1">
                       <h3 className="font-black italic uppercase tracking-tight text-zinc-950 group-hover:text-brand-blue transition-colors leading-tight mb-4 text-base">
                         {product.name}
                       </h3>
-                      <div className="mt-auto">
-                        <p className="text-3xl font-black italic text-zinc-950 leading-none">
-                          R$ {Number(product.price).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                        </p>
-                        <p className="text-[10px] font-black text-brand-green uppercase tracking-widest mt-1">no PIX com 5% off</p>
+                      <div className="mt-auto space-y-4">
+                        <div>
+                          {product.price_pix ? (
+                            <>
+                              <p className="text-zinc-400 text-xs font-bold line-through mb-1">
+                                R$ {Number(product.price).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                              </p>
+                              <div className="flex items-baseline gap-2">
+                                <span className="text-[10px] font-black text-brand-green uppercase italic">No PIX</span>
+                                <p className="text-3xl font-black italic text-zinc-950 leading-none">
+                                  R$ {Number(product.price_pix).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                                </p>
+                              </div>
+                            </>
+                          ) : (
+                            <p className="text-3xl font-black italic text-zinc-950 leading-none">
+                              R$ {Number(product.price).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                            </p>
+                          )}
+                        </div>
+                        <AddToCartButton
+                          product={{
+                            id: product.id,
+                            name: product.name,
+                            price: Number(product.price),
+                            price_pix: product.price_pix ? Number(product.price_pix) : null,
+                            image_url: mainImg,
+                            stock_quantity: product.stock_quantity,
+                          }}
+                        />
                       </div>
-                      <a 
-                        href={`https://wa.me/558592994635?text=Olá! Tenho interesse no produto: ${product.name}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mt-6 w-full bg-zinc-950 text-white py-4 font-black italic uppercase text-sm flex items-center justify-center gap-2 hover:bg-brand-blue transition-colors"
-                      >
-                        <Plus className="h-5 w-5" />
-                        Comprar Agora
-                      </a>
                     </div>
                   </div>
                 );
               })}
             </div>
           ) : (
-            /* Estado vazio — sem produtos em destaque */
             <div className="text-center py-16 border-2 border-dashed border-zinc-200 bg-white">
               <Dumbbell className="h-16 w-16 text-zinc-200 mx-auto mb-4" />
               <p className="text-zinc-400 font-black italic uppercase tracking-widest">
                 Nenhum produto em destaque ainda.
               </p>
               <p className="text-zinc-300 text-sm font-bold mt-2 normal-case not-italic">
-                Marque produtos como "Em Destaque" no painel administrativo.
+                Marque produtos como &quot;Em Destaque&quot; no painel administrativo.
               </p>
             </div>
           )}

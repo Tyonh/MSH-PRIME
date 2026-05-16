@@ -34,6 +34,7 @@ export async function signUp(formData: FormData) {
     options: {
       data: {
         full_name: name,
+        role: "admin",
       },
     },
   });
@@ -50,3 +51,5 @@ export async function signOut() {
   await supabase.auth.signOut();
   return redirect("/admin/login");
 }
+
+

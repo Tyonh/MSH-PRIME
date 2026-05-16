@@ -3,10 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "node --max-old-space-size=4096 node_modules/next/dist/bin/next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "clean": "if exist .next (rd /s /q .next) && if exist node_modules (rd /s /q node_modules) && npm install"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.3",

@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import ProductForm from "@/components/admin/ProductForm";
 import { notFound } from "next/navigation";
 
@@ -8,7 +8,7 @@ interface Props {
 
 export default async function EditProductPage({ params }: Props) {
   const { id } = await params;
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   // Busca produto + imagem principal + objetivo atual
   const [

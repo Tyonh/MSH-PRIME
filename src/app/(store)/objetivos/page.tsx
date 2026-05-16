@@ -174,7 +174,7 @@ export default function ObjectivesPage() {
             Nossa equipe especializada te ajuda a montar o protocolo ideal para os seus objetivos.
           </p>
           <a
-            href="https://wa.me/5511999999999"
+            href="https://wa.me/558592994635"
             className="inline-flex items-center gap-3 bg-brand-green text-white px-10 py-5 font-black italic uppercase text-sm hover:bg-white hover:text-brand-green transition-all shadow-2xl"
           >
             Falar com Especialista
