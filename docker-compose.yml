@@ -1,0 +1,19 @@
+services:
+  msh-prime:
+    build:
+      context: .
+      args:
+        - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+        - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+    container_name: msh-prime-app
+    restart: always
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env.local
+    networks:
+      - msh-network
+
+networks:
+  msh-network:
+    driver: bridge

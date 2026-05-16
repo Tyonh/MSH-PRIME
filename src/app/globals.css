@@ -1,0 +1,83 @@
+@import "tailwindcss";
+
+/* ============================================
+   DESIGN SYSTEM — MSH PRIME
+   Paleta: Esportivo, Agressivo, Alta Performance
+   ============================================ */
+
+@theme {
+  /* Cores da Marca */
+  --color-brand-blue: #0047ba;
+  --color-brand-blue-light: #6595d2;
+  --color-brand-red: #e30613;
+  --color-brand-green: #218838;
+  --color-brand-orange: #f97316;
+  --color-brand-dark: #0a0a0f;
+
+  /* Neutros fixos — nunca mudam com o tema do sistema */
+  --color-surface: #ffffff;
+  --color-surface-2: #f5f6f8;
+  --color-border: #e8eaed;
+
+  /* Tipografia */
+  --color-text-primary: #0a0a0f;
+  --color-text-secondary: #52525b;
+  --color-text-muted: #a1a1aa;
+}
+
+/* ============================================
+   BASE — Ignorar prefers-color-scheme
+   As seções de fundo claro SEMPRE precisam
+   de texto escuro, independente do tema do OS
+   ============================================ */
+:root {
+  --background: #f5f6f8;
+  --foreground: #0a0a0f;
+  color-scheme: light;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #f5f6f8;
+  color: #0a0a0f;
+  font-family: var(--font-inter), 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================
+   TIPOGRAFIA GLOBAL
+   ============================================ */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 900;
+  font-style: italic;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+  line-height: 0.95;
+}
+
+/* ============================================
+   UTILITÁRIOS
+   ============================================ */
+.clip-diagonal {
+  clip-path: polygon(0 0, 100% 0, 100% 88%, 0 100%);
+}
+
+.clip-diagonal-reverse {
+  clip-path: polygon(0 12%, 100% 0, 100% 100%, 0 100%);
+}
+
+.text-gradient-blue {
+  background: linear-gradient(135deg, #0047ba, #6595d2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.badge-skew {
+  display: inline-block;
+  transform: skewX(-10deg);
+}
