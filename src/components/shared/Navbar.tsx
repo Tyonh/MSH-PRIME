@@ -92,17 +92,17 @@ export default function Navbar() {
 
         {/* Menu Mobile */}
         <div
-          className={`md:hidden overflow-hidden transition-all duration-300 ${
-            menuOpen ? "max-h-60 border-t border-zinc-800 mt-3" : "max-h-0"
+          className={`md:hidden overflow-hidden transition-all duration-500 ease-in-out ${
+            menuOpen ? "max-h-screen bg-black/95 backdrop-blur-md border-t border-zinc-800" : "max-h-0"
           }`}
         >
-          <div className="container mx-auto px-4 py-4 flex flex-col gap-1">
+          <div className="flex flex-col p-6 gap-4">
             {navLinks.map((item) => (
               <Link
                 key={item.label}
                 href={item.href}
                 onClick={() => setMenuOpen(false)}
-                className="font-black text-sm uppercase italic tracking-widest text-zinc-300 hover:text-white hover:bg-zinc-900 px-4 py-3 transition-all"
+                className="font-black text-2xl uppercase italic tracking-widest text-zinc-300 hover:text-brand-blue-light transition-all"
               >
                 {item.label}
               </Link>
