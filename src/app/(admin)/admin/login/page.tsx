@@ -1,5 +1,5 @@
 import { login } from "@/lib/actions/auth";
-import { ShieldAlert, Lock, ArrowRight, UserCircle } from "lucide-react";
+import { ShieldAlert, Lock, ArrowRight, UserCircle, CheckCircle } from "lucide-react";
 import Link from "next/link";
 
 export default async function LoginPage({
@@ -40,7 +40,7 @@ export default async function LoginPage({
 
               {message && (
                 <div className="bg-brand-green/10 border-l-4 border-brand-green p-4 flex items-center gap-3 text-brand-green text-[10px] font-black uppercase italic tracking-wider">
-                  <ShieldAlert className="h-5 w-5 shrink-0" />
+                  <CheckCircle className="h-5 w-5 shrink-0" />
                   {message}
                 </div>
               )}

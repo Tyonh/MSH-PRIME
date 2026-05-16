@@ -56,6 +56,7 @@ export default async function EditProductPage({ params }: Props) {
         brand_id:              product.brand_id,
         current_image_url:     mainImage,
         current_objective_id:  currentObjectiveId,
+        images:                productImages ?? [],
       }}
     />
   );

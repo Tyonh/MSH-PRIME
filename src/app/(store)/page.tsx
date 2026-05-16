@@ -38,6 +38,7 @@ export default async function HomePage() {
       name,
       price,
       price_pix,
+      discount_label,
       stock_quantity,
       product_images ( image_url, display_order )
     `)
@@ -49,7 +50,7 @@ export default async function HomePage() {
   return (
     <>
       {/* ── HERO ── */}
-      <section className="relative h-[92vh] flex items-center overflow-hidden bg-zinc-950">
+      <section className="relative h-[85vh] md:h-[92vh] flex items-center overflow-hidden bg-zinc-950">
         <Image
           src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=1200&auto=format&fit=crop"
           alt="Atleta MSH PRIME"
@@ -58,49 +59,49 @@ export default async function HomePage() {
           className="object-cover opacity-40"
           priority
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/80 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b md:bg-gradient-to-r from-zinc-950 via-zinc-950/80 to-transparent" />
 
-        <div className="container mx-auto px-6 relative z-10">
+        <div className="container mx-auto px-4 md:px-6 relative z-10">
           <div className="max-w-2xl">
-            <span className="inline-block text-[10px] font-black tracking-[0.4em] text-brand-blue-light uppercase mb-6 border border-brand-blue-light/30 px-4 py-2">
+            <span className="inline-block text-[8px] md:text-[10px] font-black tracking-[0.3em] md:tracking-[0.4em] text-brand-blue-light uppercase mb-4 md:mb-6 border border-brand-blue-light/30 px-3 py-1.5 md:px-4 md:py-2">
               Alta Performance
             </span>
-            <h1 className="text-7xl md:text-9xl font-black text-white leading-none mb-6 italic tracking-tighter">
+            <h1 className="text-5xl sm:text-7xl md:text-9xl font-black text-white leading-none mb-4 md:mb-6 italic tracking-tighter">
               ELEVE SEU<br />
               <span className="text-brand-blue-light">NÍVEL</span>
             </h1>
-            <p className="text-lg text-zinc-300 mb-10 font-medium leading-relaxed max-w-lg not-italic normal-case tracking-normal">
+            <p className="text-sm md:text-lg text-zinc-300 mb-8 md:mb-10 font-medium leading-relaxed max-w-lg not-italic normal-case tracking-normal">
               Suplementação de elite para quem não aceita mediocridade. Resultados reais, produtos originais.
             </p>
-            <div className="flex flex-wrap gap-4">
-              <Link href="/produtos" className="group inline-flex items-center gap-3 bg-brand-blue text-white px-10 py-5 font-black italic uppercase text-sm hover:bg-white hover:text-brand-blue transition-all">
+            <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
+              <Link href="/produtos" className="group inline-flex items-center justify-center gap-3 bg-brand-blue text-white px-8 py-4 md:px-10 md:py-5 font-black italic uppercase text-xs md:text-sm hover:bg-white hover:text-brand-blue transition-all">
                 Ver Catálogo
-                <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="h-4 w-4 md:h-5 md:w-5 group-hover:translate-x-1 transition-transform" />
               </Link>
-              <a href="https://wa.me/558592994635" className="inline-flex items-center gap-3 border-2 border-white/30 text-white px-8 py-5 font-black italic uppercase text-sm hover:border-brand-green hover:text-brand-green transition-all">
-                <MessageCircle className="h-5 w-5" />
+              <a href="https://wa.me/558592994635" className="inline-flex items-center justify-center gap-3 border-2 border-white/30 text-white px-6 py-4 md:px-8 md:py-5 font-black italic uppercase text-xs md:text-sm hover:border-brand-green hover:text-brand-green transition-all">
+                <MessageCircle className="h-4 w-4 md:h-5 md:w-5" />
                 Fale Conosco
               </a>
             </div>
           </div>
         </div>
-        <div className="absolute bottom-0 w-full h-20 bg-[#f5f6f8]" style={{ clipPath: "polygon(0 100%, 100% 40%, 100% 100%)" }} />
+        <div className="absolute bottom-0 w-full h-12 md:h-20 bg-[#f5f6f8]" style={{ clipPath: "polygon(0 100%, 100% 40%, 100% 100%)" }} />
       </section>
 
       {/* ── CATEGORIAS ── */}
-      <section className="py-20 bg-[#f5f6f8]">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-12">
-            <span className="text-[10px] font-black tracking-[0.4em] text-brand-blue uppercase">Explore por objetivo</span>
-            <h2 className="text-5xl font-black italic tracking-tighter text-zinc-950 mt-2">Categorias</h2>
+      <section className="py-12 md:py-20 bg-[#f5f6f8]">
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="text-center mb-8 md:mb-12">
+            <span className="text-[8px] md:text-[10px] font-black tracking-[0.3em] md:tracking-[0.4em] text-brand-blue uppercase">Explore por objetivo</span>
+            <h2 className="text-3xl md:text-5xl font-black italic tracking-tighter text-zinc-950 mt-2">Categorias</h2>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
             {quickCategories.map((cat) => (
-              <Link key={cat.name} href={cat.href} className="group bg-white p-8 flex flex-col items-center text-center hover:bg-zinc-950 transition-all duration-300 shadow-sm hover:shadow-2xl">
-                <div className={`${cat.color} p-5 mb-5 group-hover:scale-110 transition-transform`}>
-                  <cat.icon className="h-8 w-8 text-white" />
+              <Link key={cat.name} href={cat.href} className="group bg-white p-5 md:p-8 flex flex-col items-center text-center hover:bg-zinc-950 transition-all duration-300 shadow-sm hover:shadow-2xl">
+                <div className={`${cat.color} p-3 md:p-5 mb-3 md:mb-5 group-hover:scale-110 transition-transform`}>
+                  <cat.icon className="h-6 w-6 md:h-8 md:w-8 text-white" />
                 </div>
-                <span className="font-black italic uppercase text-zinc-950 group-hover:text-white transition-colors tracking-tight text-lg">
+                <span className="font-black italic uppercase text-zinc-950 group-hover:text-white transition-colors tracking-tight text-sm md:text-lg">
                   {cat.name}
                 </span>
               </Link>
@@ -110,15 +111,15 @@ export default async function HomePage() {
       </section>
 
       {/* ── TRUST BADGES ── */}
-      <section className="bg-zinc-950 py-12">
-        <div className="container mx-auto px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+      <section className="bg-zinc-950 py-8 md:py-12">
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
             {trustBadges.map((badge) => (
-              <div key={badge.title} className="flex items-center gap-4">
-                <badge.icon className="h-10 w-10 text-brand-blue-light shrink-0" />
+              <div key={badge.title} className="flex items-center gap-3 md:gap-4">
+                <badge.icon className="h-7 w-7 md:h-10 md:w-10 text-brand-blue-light shrink-0" />
                 <div>
-                  <p className="text-white font-black italic uppercase text-sm leading-none">{badge.title}</p>
-                  <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-1">{badge.desc}</p>
+                  <p className="text-white font-black italic uppercase text-xs md:text-sm leading-none">{badge.title}</p>
+                  <p className="text-zinc-500 text-[8px] md:text-[10px] font-bold uppercase tracking-widest mt-0.5 md:mt-1">{badge.desc}</p>
                 </div>
               </div>
             ))}
@@ -127,14 +128,14 @@ export default async function HomePage() {
       </section>
 
       {/* ── PRODUTOS EM DESTAQUE ── */}
-      <section className="py-24 bg-[#f5f6f8]">
-        <div className="container mx-auto px-6">
-          <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
+      <section className="py-14 md:py-24 bg-[#f5f6f8]">
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 md:mb-16 gap-4 md:gap-6">
             <div>
-              <span className="text-[10px] font-black tracking-[0.4em] text-brand-blue uppercase">Os favoritos da galera</span>
-              <h2 className="text-5xl md:text-6xl font-black italic tracking-tighter text-zinc-950 mt-2">Mais Vendidos</h2>
+              <span className="text-[8px] md:text-[10px] font-black tracking-[0.3em] md:tracking-[0.4em] text-brand-blue uppercase">Os favoritos da galera</span>
+              <h2 className="text-3xl sm:text-5xl md:text-6xl font-black italic tracking-tighter text-zinc-950 mt-2">Mais Vendidos</h2>
             </div>
-            <Link href="/produtos" className="group inline-flex items-center gap-2 border-2 border-zinc-950 text-zinc-950 px-8 py-3 font-black italic uppercase text-sm hover:bg-zinc-950 hover:text-white transition-all">
+            <Link href="/produtos" className="group inline-flex items-center gap-2 border-2 border-zinc-950 text-zinc-950 px-6 py-2.5 md:px-8 md:py-3 font-black italic uppercase text-xs md:text-sm hover:bg-zinc-950 hover:text-white transition-all">
               Ver Todos
               <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
             </Link>
@@ -148,6 +149,13 @@ export default async function HomePage() {
                 return (
                   <div key={product.id} className="group bg-white flex flex-col shadow-sm hover:shadow-xl transition-all border-b-4 border-transparent hover:border-brand-blue">
                     <div className="relative aspect-square overflow-hidden bg-zinc-50">
+                      {product.discount_label && (
+                        <div className="absolute top-4 left-4 z-10">
+                          <span className="bg-brand-red text-white text-[10px] font-black px-3 py-1 uppercase italic tracking-widest shadow-lg">
+                            {product.discount_label}
+                          </span>
+                        </div>
+                      )}
                       {mainImg ? (
                         <Image
                           src={mainImg}
@@ -217,16 +225,16 @@ export default async function HomePage() {
       </section>
 
       {/* ── CTA WHATSAPP ── */}
-      <section className="bg-brand-blue py-20">
-        <div className="container mx-auto px-6 text-center">
-          <h2 className="text-5xl md:text-7xl font-black italic text-white mb-6 tracking-tighter">
+      <section className="bg-brand-blue py-14 md:py-20">
+        <div className="container mx-auto px-4 md:px-6 text-center">
+          <h2 className="text-3xl sm:text-5xl md:text-7xl font-black italic text-white mb-4 md:mb-6 tracking-tighter">
             Dúvidas? <span className="text-white/60">Fale</span><br />com a gente!
           </h2>
-          <p className="text-white/70 text-lg mb-10 font-medium normal-case tracking-normal not-italic">
+          <p className="text-white/70 text-sm md:text-lg mb-8 md:mb-10 font-medium normal-case tracking-normal not-italic">
             Nossa equipe está pronta para te ajudar a escolher o suplemento ideal.
           </p>
-          <a href="https://wa.me/558592994635" className="inline-flex items-center gap-3 bg-white text-brand-blue px-10 py-5 font-black italic uppercase text-sm hover:bg-zinc-950 hover:text-white transition-all shadow-2xl">
-            <MessageCircle className="h-6 w-6" />
+          <a href="https://wa.me/558592994635" className="inline-flex items-center gap-3 bg-white text-brand-blue px-8 py-4 md:px-10 md:py-5 font-black italic uppercase text-xs md:text-sm hover:bg-zinc-950 hover:text-white transition-all shadow-2xl">
+            <MessageCircle className="h-5 w-5 md:h-6 md:w-6" />
             Chamar no WhatsApp
           </a>
         </div>

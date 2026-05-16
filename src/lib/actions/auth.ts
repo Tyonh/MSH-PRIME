@@ -43,7 +43,7 @@ export async function signUp(formData: FormData) {
     return redirect(`/admin/register?error=${error.message}`);
   }
 
-  return redirect("/admin/login?message=Conta criada! Aguarde aprovação do administrador.");
+  return redirect("/admin/register?message=Conta criada! Aguarde aprovação do administrador.");
 }
 
 export async function signOut() {

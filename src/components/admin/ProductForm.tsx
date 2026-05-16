@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { createProduct, updateProduct } from "@/lib/actions/products";
 import {
   Package, DollarSign, Database, Image as ImageIcon,
   Type, Target, ArrowLeft, Save, Tag, Award,
-  CreditCard, Banknote, Percent, Info
+  CreditCard, Banknote, Percent, Info, Trash2
 } from "lucide-react";
+import { createProduct, updateProduct, deleteProductImage } from "@/lib/actions/products";
 import Link from "next/link";
 
 interface SelectOption { id: string; name: string; }
@@ -26,6 +26,7 @@ interface ProductData {
   brand_id:       string | null;
   current_objective_id: string | null;
   current_image_url:    string | null;
+  images?:        { image_url: string; display_order: number }[];
 }
 
 interface Props {
@@ -37,14 +38,35 @@ interface Props {
 
 export default function ProductForm({ categories, brands, objectives, product }: Props) {
   const isEdit = !!product;
-  const [preview, setPreview] = useState<string | null>(product?.current_image_url ?? null);
+  const [previews, setPreviews] = useState<string[]>(
+    product?.images?.map(img => img.image_url) ?? (product?.current_image_url ? [product.current_image_url] : [])
+  );
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
+  const handleImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    const newPreviews: string[] = [];
+    Array.from(files).forEach((file) => {
       const reader = new FileReader();
-      reader.onloadend = () => setPreview(reader.result as string);
+      reader.onloadend = () => {
+        newPreviews.push(reader.result as string);
+        if (newPreviews.length === files.length) {
+          setPreviews(prev => [...prev, ...newPreviews]);
+        }
+      };
       reader.readAsDataURL(file);
+    });
+  };
+
+  const handleDeleteImage = async (imageUrl: string) => {
+    if (!product) return;
+    if (!confirm("Tem certeza que deseja excluir esta foto?")) return;
+
+    const result = await deleteProductImage(product.id, imageUrl);
+    if (result?.success) {
+      setPreviews(prev => prev.filter(p => p !== imageUrl));
+    } else {
+      alert(result?.error || "Erro ao excluir imagem");
     }
   };
 
@@ -79,25 +101,51 @@ export default function ProductForm({ categories, brands, objectives, product }:
         {/* ── Coluna Esquerda ── */}
         <div className="md:col-span-1 space-y-6">
 
-          {/* Upload */}
+          {/* Upload de Imagens */}
           <div className="bg-white p-6 shadow-sm border border-zinc-100">
             <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-4 block">
-              {isEdit ? "Alterar Imagem" : "Foto do Produto"}
+              Fotos do Produto (múltiplas)
             </label>
-            <div className="relative aspect-square bg-zinc-50 border-2 border-dashed border-zinc-200 flex items-center justify-center overflow-hidden">
-              {preview ? (
-                <img src={preview} alt="Preview" className="w-full h-full object-contain p-4" />
-              ) : (
-                <div className="text-center p-6">
-                  <ImageIcon className="h-10 w-10 text-zinc-300 mx-auto mb-2" />
-                  <p className="text-[10px] font-bold text-zinc-400 uppercase">Selecione uma imagem</p>
-                </div>
-              )}
-              <input type="file" name="image" accept="image/*" onChange={handleImageChange} className="absolute inset-0 opacity-0 cursor-pointer" />
-            </div>
-            {isEdit && (
-              <p className="mt-2 text-[10px] text-zinc-400 italic">Deixe vazio para manter a imagem atual.</p>
+
+            {/* Grid de previews */}
+            {previews.length > 0 && (
+              <div className="grid grid-cols-2 gap-2 mb-4">
+                {previews.map((src, i) => (
+                  <div key={i} className="relative aspect-square bg-zinc-50 border border-zinc-200 overflow-hidden group">
+                    <img src={src} alt={`Foto ${i + 1}`} className="w-full h-full object-contain p-2" />
+                    <div className="absolute top-1 left-1 bg-zinc-950/70 text-white text-[10px] font-black px-1.5 py-0.5 z-10">
+                      {i + 1}
+                    </div>
+                    {/* Botão de Excluir (apenas se for edição e a imagem não for um preview local recém-adicionado) */}
+                    {isEdit && src.startsWith("http") && (
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteImage(src)}
+                        className="absolute top-1 right-1 bg-brand-red text-white p-1.5 opacity-0 group-hover:opacity-100 transition-opacity z-20"
+                        title="Excluir imagem"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
             )}
+
+            {/* Botão de adicionar */}
+            <div className="relative bg-zinc-50 border-2 border-dashed border-zinc-200 p-6 text-center cursor-pointer hover:border-brand-blue transition-colors">
+              <ImageIcon className="h-8 w-8 text-zinc-300 mx-auto mb-2" />
+              <p className="text-[10px] font-bold text-zinc-400 uppercase">Clique para adicionar fotos</p>
+              <p className="text-[8px] text-zinc-300 font-bold mt-1">A primeira será a foto principal</p>
+              <input
+                type="file"
+                name="images"
+                accept="image/*"
+                multiple
+                onChange={handleImagesChange}
+                className="absolute inset-0 opacity-0 cursor-pointer"
+              />
+            </div>
           </div>
 
           {/* Flags */}

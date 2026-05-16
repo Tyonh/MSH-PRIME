@@ -4,10 +4,10 @@ import { MessageCircle, MapPin, Phone } from "lucide-react";
 export default function Footer() {
   return (
     <footer className="bg-zinc-950 text-white">
-      <div className="container mx-auto px-6 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
+      <div className="container mx-auto px-4 md:px-6 py-10 md:py-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
           {/* Logo + Descrição */}
-          <div className="md:col-span-2">
+          <div className="sm:col-span-2">
             <Link href="/" className="inline-flex flex-col mb-6">
               <span className="text-4xl font-black italic tracking-tighter text-white leading-none">
                 MSH <span className="text-brand-blue-light">PRIME</span>
@@ -84,8 +84,8 @@ export default function Footer() {
       </div>
 
       {/* Bottom Bar */}
-      <div className="border-t border-zinc-800 py-6">
-        <div className="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
+      <div className="border-t border-zinc-800 py-4 md:py-6">
+        <div className="container mx-auto px-4 md:px-6 flex flex-col md:flex-row justify-between items-center gap-3 md:gap-4">
           <p className="text-zinc-600 text-[10px] font-bold uppercase tracking-widest">
             © {new Date().getFullYear()} MSH PRIME. Todos os direitos reservados.
           </p>

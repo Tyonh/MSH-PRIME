@@ -25,6 +25,9 @@ export const metadata: Metadata = {
   },
 };
 
+import { CartProvider } from "@/context/CartContext";
+import { FloatingCart } from "@/components/store/FloatingCart";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -32,7 +35,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR" className={inter.variable}>
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        <CartProvider>
+          {children}
+          <FloatingCart />
+        </CartProvider>
+      </body>
     </html>
   );
 }

@@ -1,6 +1,5 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -35,16 +34,57 @@ const buildProductPayload = (formData: FormData, slug?: string) => ({
   is_featured:     formData.get("is_featured") === "on",
 });
 
+// Helper para garantir bucket existe e fazer upload de múltiplas imagens
+const uploadImages = async (admin: ReturnType<typeof createAdminClient>, productId: string, formData: FormData) => {
+  const files = formData.getAll("images") as File[];
+  const validFiles = files.filter(f => f && f.size > 0);
+  if (validFiles.length === 0) return;
+
+  // Garante bucket
+  const { data: buckets } = await admin.storage.listBuckets();
+  if (!buckets?.find(b => b.name === "images")) {
+    await admin.storage.createBucket("images", { public: true });
+  }
+
+  // Conta quantas imagens já existem para definir display_order
+  const { count } = await admin
+    .from("product_images")
+    .select("*", { count: "exact", head: true })
+    .eq("product_id", productId);
+  let order = count ?? 0;
+
+  for (const file of validFiles) {
+    const ext = file.name.split(".").pop();
+    const path = `products/${productId}-${Date.now()}-${order}.${ext}`;
+
+    const { error: uploadErr } = await admin.storage.from("images").upload(path, file, {
+      contentType: file.type,
+      upsert: false,
+    });
+
+    if (!uploadErr) {
+      const { data: { publicUrl } } = admin.storage.from("images").getPublicUrl(path);
+      await admin.from("product_images").insert([{
+        product_id: productId,
+        image_url: publicUrl,
+        display_order: order,
+      }]);
+      order++;
+    } else {
+      console.error(`❌ Erro no upload da imagem ${file.name}:`, uploadErr.message);
+    }
+  }
+};
+
 // ── CREATE ──────────────────────────────────────
 export async function createProduct(formData: FormData) {
-  const supabase = await createClient();
+  const admin = createAdminClient();
 
-  const name      = formData.get("name") as string;
-  const slug      = `${toSlug(name)}-${Date.now()}`;
-  const imageFile = formData.get("image") as File;
+  const name = formData.get("name") as string;
+  const slug = `${toSlug(name)}-${Date.now()}`;
   const objectiveId = formData.get("objective_id") as string | null;
 
-  const { data: product, error } = await supabase
+  const { data: product, error } = await admin
     .from("products")
     .insert([buildProductPayload(formData, slug)])
     .select("id")
@@ -55,35 +95,12 @@ export async function createProduct(formData: FormData) {
     return { error: `Falha no banco: ${error.message}` };
   }
 
-  // Upload de imagem — usa service role para bypassar RLS do Storage
-  if (imageFile && imageFile.size > 0) {
-    const admin = createAdminClient();
-    const ext   = imageFile.name.split(".").pop();
-    const path  = `products/${product.id}-${Date.now()}.${ext}`;
-
-    // Garante que o bucket 'images' existe
-    const { data: buckets } = await admin.storage.listBuckets();
-    if (!buckets?.find(b => b.name === 'images')) {
-      await admin.storage.createBucket('images', { public: true });
-    }
-
-    const { error: uploadErr } = await admin.storage.from("images").upload(path, imageFile, {
-      contentType: imageFile.type,
-      upsert: false,
-    });
-
-    if (uploadErr) {
-      console.error("❌ Erro no upload:", uploadErr.message);
-      return { error: `Produto criado, mas falha na imagem: ${uploadErr.message}` };
-    }
-
-    const { data: { publicUrl } } = admin.storage.from("images").getPublicUrl(path);
-    await admin.from("product_images").insert([{ product_id: product.id, image_url: publicUrl, display_order: 0 }]);
-  }
+  // Upload de múltiplas imagens
+  await uploadImages(admin, product.id, formData);
 
   // Objetivo
   if (objectiveId) {
-    await supabase.from("product_objectives").insert([{ product_id: product.id, objective_id: objectiveId }]);
+    await admin.from("product_objectives").insert([{ product_id: product.id, objective_id: objectiveId }]);
   }
 
   revalidatePath("/admin/products");
@@ -93,11 +110,10 @@ export async function createProduct(formData: FormData) {
 
 // ── UPDATE ──────────────────────────────────────
 export async function updateProduct(id: string, formData: FormData) {
-  const supabase = await createClient();
-  const imageFile = formData.get("image") as File;
+  const admin = createAdminClient();
   const objectiveId = formData.get("objective_id") as string | null;
 
-  const { error } = await supabase
+  const { error } = await admin
     .from("products")
     .update(buildProductPayload(formData))
     .eq("id", id);
@@ -107,35 +123,13 @@ export async function updateProduct(id: string, formData: FormData) {
     return { error: `Falha ao atualizar: ${error.message}` };
   }
 
-  // Nova imagem (se enviada)
-  if (imageFile && imageFile.size > 0) {
-    const admin = createAdminClient();
-    const ext   = imageFile.name.split(".").pop();
-    const path  = `products/${id}-${Date.now()}.${ext}`;
-    
-    // Garante que o bucket 'images' existe
-    const { data: buckets } = await admin.storage.listBuckets();
-    if (!buckets?.find(b => b.name === 'images')) {
-      await admin.storage.createBucket('images', { public: true });
-    }
+  // Upload de novas imagens (se enviadas)
+  await uploadImages(admin, id, formData);
 
-    const { error: uploadErr } = await admin.storage.from("images").upload(path, imageFile, {
-      contentType: imageFile.type,
-      upsert: false,
-    });
-
-    if (!uploadErr) {
-      const { data: { publicUrl } } = admin.storage.from("images").getPublicUrl(path);
-      await admin.from("product_images").insert([{ product_id: id, image_url: publicUrl, display_order: 0 }]);
-    } else {
-      console.error("❌ Erro no upload (update):", uploadErr.message);
-    }
-  }
-
-  // Atualiza objetivo (remove antigo e insere novo)
-  await supabase.from("product_objectives").delete().eq("product_id", id);
+  // Atualiza objetivo
+  await admin.from("product_objectives").delete().eq("product_id", id);
   if (objectiveId) {
-    await supabase.from("product_objectives").insert([{ product_id: id, objective_id: objectiveId }]);
+    await admin.from("product_objectives").insert([{ product_id: id, objective_id: objectiveId }]);
   }
 
   revalidatePath("/admin/products");
@@ -143,24 +137,57 @@ export async function updateProduct(id: string, formData: FormData) {
   redirect("/admin/products");
 }
 
+export async function deleteProductImage(productId: string, imageUrl: string) {
+  const admin = createAdminClient();
+
+  // 1. Remove do banco
+  const { error: dbError } = await admin
+    .from("product_images")
+    .delete()
+    .eq("product_id", productId)
+    .eq("image_url", imageUrl);
+
+  if (dbError) {
+    console.error("❌ Erro ao remover imagem do banco:", dbError.message);
+    return { error: "Erro ao remover do banco de dados" };
+  }
+
+  // 2. Tenta extrair o path do Storage para remover o arquivo físico
+  // Exemplo: .../storage/v1/object/public/images/products/xyz.jpg -> products/xyz.jpg
+  try {
+    const urlParts = imageUrl.split("/images/");
+    if (urlParts.length > 1) {
+      const storagePath = urlParts[1];
+      const { error: storageError } = await admin.storage.from("images").remove([storagePath]);
+      if (storageError) console.warn("⚠️ Falha ao remover arquivo do Storage:", storageError.message);
+    }
+  } catch (e) {
+    console.warn("⚠️ Não foi possível determinar o path do storage para deletar arquivo físico.");
+  }
+
+  revalidatePath(`/admin/products/${productId}/edit`);
+  revalidatePath("/produtos");
+  return { success: true };
+}
+
 // ── TOGGLE / DELETE ─────────────────────────────
 export async function toggleVisibility(id: string, currentValue: boolean) {
-  const supabase = await createClient();
-  await supabase.from("products").update({ is_visible: !currentValue }).eq("id", id);
+  const admin = createAdminClient();
+  await admin.from("products").update({ is_visible: !currentValue }).eq("id", id);
   revalidatePath("/admin/products");
   revalidatePath("/");
 }
 
 export async function toggleFeatured(id: string, currentValue: boolean) {
-  const supabase = await createClient();
-  await supabase.from("products").update({ is_featured: !currentValue }).eq("id", id);
+  const admin = createAdminClient();
+  await admin.from("products").update({ is_featured: !currentValue }).eq("id", id);
   revalidatePath("/admin/products");
   revalidatePath("/");
 }
 
 export async function deleteProduct(id: string) {
-  const supabase = await createClient();
-  await supabase.from("products").delete().eq("id", id);
+  const admin = createAdminClient();
+  await admin.from("products").delete().eq("id", id);
   revalidatePath("/admin/products");
   revalidatePath("/");
 }

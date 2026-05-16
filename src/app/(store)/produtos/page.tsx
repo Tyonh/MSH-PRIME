@@ -83,14 +83,14 @@ export default async function ProductsPage({ searchParams }: Props) {
   const activeFilters = [objetivo, marca, categoria].filter(Boolean).length;
 
   return (
-    <div className="min-h-screen bg-[#f5f6f8] pt-32 pb-20">
-      <div className="container mx-auto px-6">
+    <div className="min-h-screen bg-[#f5f6f8] pt-24 md:pt-32 pb-12 md:pb-20">
+      <div className="container mx-auto px-4 md:px-6">
 
         {/* Header */}
-        <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div className="mb-6 md:mb-12 flex flex-col md:flex-row md:items-end justify-between gap-3 md:gap-4">
           <div>
-            <p className="text-[10px] font-black tracking-[0.4em] text-brand-blue uppercase mb-2">Linha Completa</p>
-            <h1 className="text-5xl md:text-6xl font-black italic tracking-tighter text-zinc-950 uppercase">
+            <p className="text-[8px] md:text-[10px] font-black tracking-[0.3em] md:tracking-[0.4em] text-brand-blue uppercase mb-1 md:mb-2">Linha Completa</p>
+            <h1 className="text-3xl sm:text-5xl md:text-6xl font-black italic tracking-tighter text-zinc-950 uppercase">
               Catálogo de <span className="text-brand-blue">Produtos</span>
             </h1>
           </div>
@@ -104,12 +104,39 @@ export default async function ProductsPage({ searchParams }: Props) {
           )}
         </div>
 
-        <div className="grid lg:grid-cols-4 gap-10">
+        <div className="grid lg:grid-cols-4 gap-6 md:gap-10">
 
-          {/* ── SIDEBAR FILTROS ── */}
-          <aside className="space-y-6">
+          {/* ── FILTROS ── */}
+          <aside className="space-y-4 md:space-y-6">
+            {/* Mobile: filtros em linha horizontal scrollável */}
+            <div className="flex lg:hidden gap-2 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
+              {categories?.map((cat) => (
+                <Link key={cat.id} href={buildFilterUrl("categoria", cat.id)}
+                  className={`shrink-0 px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${
+                    categoria === cat.id ? "bg-purple-600 text-white" : "bg-white text-zinc-400 border border-zinc-100"
+                  }`}>
+                  {cat.name}
+                </Link>
+              ))}
+              {brands?.map((b) => (
+                <Link key={b.id} href={buildFilterUrl("marca", b.id)}
+                  className={`shrink-0 px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${
+                    marca === b.id ? "bg-orange-500 text-white" : "bg-white text-zinc-400 border border-zinc-100"
+                  }`}>
+                  {b.name}
+                </Link>
+              ))}
+              {objectives?.map((obj) => (
+                <Link key={obj.id} href={buildFilterUrl("objetivo", obj.id)}
+                  className={`shrink-0 px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${
+                    objetivo === obj.id ? "bg-brand-blue text-white" : "bg-white text-zinc-400 border border-zinc-100"
+                  }`}>
+                  {obj.name}
+                </Link>
+              ))}
+            </div>
             {/* Busca */}
-            <div className="bg-white p-5 shadow-sm border border-zinc-100">
+            <div className="hidden lg:block bg-white p-5 shadow-sm border border-zinc-100">
               <h3 className="text-[10px] font-black uppercase italic text-zinc-950 mb-3 flex items-center gap-2 tracking-widest">
                 <Search className="h-3.5 w-3.5 text-brand-blue" /> Buscar
               </h3>
@@ -129,7 +156,7 @@ export default async function ProductsPage({ searchParams }: Props) {
 
             {/* Categorias */}
             {categories && categories.length > 0 && (
-              <div className="bg-white p-5 shadow-sm border border-zinc-100">
+              <div className="hidden lg:block bg-white p-5 shadow-sm border border-zinc-100">
                 <h3 className="text-[10px] font-black uppercase italic text-zinc-950 mb-3 flex items-center gap-2 tracking-widest">
                   <Tag className="h-3.5 w-3.5 text-purple-600" /> Categorias
                 </h3>
@@ -153,7 +180,7 @@ export default async function ProductsPage({ searchParams }: Props) {
 
             {/* Marcas */}
             {brands && brands.length > 0 && (
-              <div className="bg-white p-5 shadow-sm border border-zinc-100">
+              <div className="hidden lg:block bg-white p-5 shadow-sm border border-zinc-100">
                 <h3 className="text-[10px] font-black uppercase italic text-zinc-950 mb-3 flex items-center gap-2 tracking-widest">
                   <Award className="h-3.5 w-3.5 text-orange-500" /> Marcas
                 </h3>
@@ -177,7 +204,7 @@ export default async function ProductsPage({ searchParams }: Props) {
 
             {/* Objetivos */}
             {objectives && objectives.length > 0 && (
-              <div className="bg-white p-5 shadow-sm border border-zinc-100">
+              <div className="hidden lg:block bg-white p-5 shadow-sm border border-zinc-100">
                 <h3 className="text-[10px] font-black uppercase italic text-zinc-950 mb-3 flex items-center gap-2 tracking-widest">
                   <Target className="h-3.5 w-3.5 text-brand-blue" /> Objetivos
                 </h3>
@@ -210,7 +237,7 @@ export default async function ProductsPage({ searchParams }: Props) {
             </div>
 
             {products.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-6">
                 {products.map((product) => {
                   const imgs = (product.product_images as any[]) ?? [];
                   const mainImg = imgs.sort((a: any, b: any) => a.display_order - b.display_order)[0]?.image_url ?? null;
@@ -229,7 +256,7 @@ export default async function ProductsPage({ searchParams }: Props) {
                       )}
 
                       {/* Imagem */}
-                      <div className="relative aspect-square overflow-hidden bg-zinc-50">
+                      <Link href={`/produtos/${product.slug}`} className="relative aspect-square overflow-hidden bg-zinc-50 block">
                         {mainImg ? (
                           <Image
                             src={mainImg}
@@ -253,33 +280,35 @@ export default async function ProductsPage({ searchParams }: Props) {
                             <span className="bg-zinc-950 text-white px-4 py-2 font-black uppercase italic text-xs">Esgotado</span>
                           </div>
                         )}
-                      </div>
+                      </Link>
 
                       {/* Conteúdo */}
-                      <div className="p-6 flex flex-col flex-1">
+                      <div className="p-3 md:p-6 flex flex-col flex-1">
                         {brandName && (
-                          <span className="text-[10px] font-black text-brand-blue uppercase tracking-widest mb-2">{brandName}</span>
+                          <span className="text-[8px] md:text-[10px] font-black text-brand-blue uppercase tracking-widest mb-1 md:mb-2">{brandName}</span>
                         )}
-                        <h3 className="font-black italic uppercase tracking-tight text-zinc-950 group-hover:text-brand-blue transition-colors leading-tight mb-6 text-lg min-h-[3.5rem] line-clamp-2">
-                          {product.name}
-                        </h3>
+                        <Link href={`/produtos/${product.slug}`}>
+                          <h3 className="font-black italic uppercase tracking-tight text-zinc-950 group-hover:text-brand-blue transition-colors leading-tight mb-3 md:mb-6 text-xs md:text-lg min-h-0 md:min-h-[3.5rem] line-clamp-2">
+                            {product.name}
+                          </h3>
+                        </Link>
 
                         <div className="mt-auto space-y-4">
                           <div>
                             {product.price_pix ? (
                               <>
-                                <p className="text-zinc-400 text-xs font-bold line-through mb-1">
+                                <p className="text-zinc-400 text-[10px] md:text-xs font-bold line-through mb-0.5 md:mb-1">
                                   R$ {Number(product.price).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                                 </p>
-                                <div className="flex items-baseline gap-2">
-                                  <span className="text-[10px] font-black text-brand-green uppercase italic">No PIX</span>
-                                  <p className="text-3xl font-black italic text-zinc-950 leading-none">
+                                <div className="flex items-baseline gap-1 md:gap-2">
+                                  <span className="text-[8px] md:text-[10px] font-black text-brand-green uppercase italic">PIX</span>
+                                  <p className="text-xl md:text-3xl font-black italic text-zinc-950 leading-none">
                                     R$ {Number(product.price_pix).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                                   </p>
                                 </div>
                               </>
                             ) : (
-                              <p className="text-3xl font-black italic text-zinc-950 leading-none">
+                              <p className="text-xl md:text-3xl font-black italic text-zinc-950 leading-none">
                                 R$ {Number(product.price).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                               </p>
                             )}
@@ -302,10 +331,10 @@ export default async function ProductsPage({ searchParams }: Props) {
                 })}
               </div>
             ) : (
-              <div className="bg-white p-20 text-center border-2 border-dashed border-zinc-100">
-                <Filter className="h-16 w-16 text-zinc-100 mx-auto mb-6" />
-                <h2 className="text-2xl font-black italic uppercase text-zinc-950 mb-2">Nenhum resultado</h2>
-                <p className="text-zinc-400 font-medium normal-case">Tente ajustar seus filtros ou buscar por outro termo.</p>
+              <div className="bg-white p-10 md:p-20 text-center border-2 border-dashed border-zinc-100">
+                <Filter className="h-10 w-10 md:h-16 md:w-16 text-zinc-100 mx-auto mb-4 md:mb-6" />
+                <h2 className="text-lg md:text-2xl font-black italic uppercase text-zinc-950 mb-2">Nenhum resultado</h2>
+                <p className="text-zinc-400 font-medium normal-case text-sm">Tente ajustar seus filtros.</p>
                 <Link href="/produtos" className="inline-flex items-center gap-2 text-brand-blue font-black uppercase italic text-xs mt-8 hover:underline">
                   Limpar Filtros
                 </Link>

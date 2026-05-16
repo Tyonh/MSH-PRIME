@@ -1,13 +1,13 @@
 import { signUp } from "@/lib/actions/auth";
-import { ShieldAlert, User, Mail, Lock, ArrowRight, ShieldCheck } from "lucide-react";
+import { ShieldAlert, User, Mail, Lock, ArrowRight, ShieldCheck, CheckCircle } from "lucide-react";
 import Link from "next/link";
 
 export default async function RegisterPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string, message?: string }>;
 }) {
-  const { error } = await searchParams;
+  const { error, message } = await searchParams;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-zinc-950 p-6 relative overflow-hidden">
@@ -31,64 +31,84 @@ export default async function RegisterPage({
 
         <div className="bg-zinc-900/50 backdrop-blur-sm p-1 shadow-2xl border border-zinc-800">
           <div className="bg-zinc-900 p-8 border-t-4 border-brand-blue">
-            <form action={signUp} className="space-y-6">
-              {error && (
-                <div className="bg-brand-red/10 border-l-4 border-brand-red p-4 flex items-center gap-3 text-brand-red text-[10px] font-black uppercase italic tracking-wider">
-                  <ShieldAlert className="h-5 w-5 shrink-0" />
-                  {error}
+            {message ? (
+              <div className="text-center py-10 space-y-6">
+                <div className="inline-flex items-center justify-center h-20 w-20 rounded-full bg-brand-green/10 text-brand-green mb-4">
+                  <CheckCircle className="h-12 w-12" />
                 </div>
-              )}
-
-              <div className="space-y-2">
-                <label className="text-[10px] font-[1000] text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-                  <User className="h-3 w-3" /> Nome de Exibição
-                </label>
-                <div className="relative">
-                  <input 
-                    name="name"
-                    type="text" 
-                    required
-                    className="w-full bg-zinc-800/50 border border-zinc-800 p-4 text-white font-bold focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition-all placeholder:text-zinc-600"
-                    placeholder="Nome Completo"
-                  />
+                <h3 className="text-xl font-black italic uppercase text-white tracking-tighter">
+                  Solicitação Enviada!
+                </h3>
+                <p className="text-zinc-400 text-sm font-bold normal-case tracking-normal">
+                  {message}
+                </p>
+                <div className="pt-6">
+                  <Link href="/admin/login" className="group inline-flex items-center gap-2 bg-brand-blue text-white px-8 py-4 font-black uppercase italic text-xs hover:bg-white hover:text-brand-blue transition-all">
+                    Ir para Login
+                    <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                  </Link>
                 </div>
               </div>
+            ) : (
+              <form action={signUp} className="space-y-6">
+                {error && (
+                  <div className="bg-brand-red/10 border-l-4 border-brand-red p-4 flex items-center gap-3 text-brand-red text-[10px] font-black uppercase italic tracking-wider">
+                    <ShieldAlert className="h-5 w-5 shrink-0" />
+                    {error}
+                  </div>
+                )}
 
-              <div className="space-y-2">
-                <label className="text-[10px] font-[1000] text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-                  <Mail className="h-3 w-3" /> E-mail Corporativo
-                </label>
-                <div className="relative">
-                  <input 
-                    name="email"
-                    type="email" 
-                    required
-                    className="w-full bg-zinc-800/50 border border-zinc-800 p-4 text-white font-bold focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition-all placeholder:text-zinc-600"
-                    placeholder="admin@mshprime.com"
-                  />
+                <div className="space-y-2">
+                  <label className="text-[10px] font-[1000] text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+                    <User className="h-3 w-3" /> Nome de Exibição
+                  </label>
+                  <div className="relative">
+                    <input 
+                      name="name"
+                      type="text" 
+                      required
+                      className="w-full bg-zinc-800/50 border border-zinc-800 p-4 text-white font-bold focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition-all placeholder:text-zinc-600"
+                      placeholder="Nome Completo"
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <div className="space-y-2">
-                <label className="text-[10px] font-[1000] text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-                  <Lock className="h-3 w-3" /> Senha Segura
-                </label>
-                <div className="relative">
-                  <input 
-                    name="password"
-                    type="password" 
-                    required
-                    className="w-full bg-zinc-800/50 border border-zinc-800 p-4 text-white font-bold focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition-all placeholder:text-zinc-600"
-                    placeholder="••••••••"
-                  />
+                <div className="space-y-2">
+                  <label className="text-[10px] font-[1000] text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+                    <Mail className="h-3 w-3" /> E-mail Corporativo
+                  </label>
+                  <div className="relative">
+                    <input 
+                      name="email"
+                      type="email" 
+                      required
+                      className="w-full bg-zinc-800/50 border border-zinc-800 p-4 text-white font-bold focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition-all placeholder:text-zinc-600"
+                      placeholder="admin@mshprime.com"
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <button className="group w-full bg-zinc-950 text-white py-4 font-[1000] uppercase italic text-sm hover:bg-brand-blue transition-all transform hover:-translate-y-1 shadow-lg shadow-black/20 flex items-center justify-center gap-2 border border-zinc-800">
-                Criar Conta Admin
-                <ShieldCheck className="h-5 w-5 group-hover:text-white transition-colors" />
-              </button>
-            </form>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-[1000] text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+                    <Lock className="h-3 w-3" /> Senha Segura
+                  </label>
+                  <div className="relative">
+                    <input 
+                      name="password"
+                      type="password" 
+                      required
+                      className="w-full bg-zinc-800/50 border border-zinc-800 p-4 text-white font-bold focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition-all placeholder:text-zinc-600"
+                      placeholder="••••••••"
+                    />
+                  </div>
+                </div>
+
+                <button className="group w-full bg-zinc-950 text-white py-4 font-[1000] uppercase italic text-sm hover:bg-brand-blue transition-all transform hover:-translate-y-1 shadow-lg shadow-black/20 flex items-center justify-center gap-2 border border-zinc-800">
+                  Criar Conta Admin
+                  <ShieldCheck className="h-5 w-5 group-hover:text-white transition-colors" />
+                </button>
+              </form>
+            )}
 
             <div className="mt-8 pt-6 border-t border-zinc-800/50 text-center">
               <Link href="/admin/login" className="text-zinc-500 hover:text-brand-blue text-[10px] font-[1000] uppercase tracking-[0.2em] transition-all">
