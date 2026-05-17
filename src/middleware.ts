@@ -75,8 +75,39 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('/admin/login', request.url))
     }
 
+    // Se estiver logado, garante que tem o cargo/role de 'admin' para acessar qualquer rota da dashboard
+    if (user && 
+        request.nextUrl.pathname !== '/admin/login' && 
+        request.nextUrl.pathname !== '/admin/register'
+    ) {
+      const role = user.user_metadata?.role;
+      if (role !== "admin") {
+        const loginUrl = new URL('/admin/login', request.url);
+        loginUrl.searchParams.set('error', 'Acesso negado: Você não possui permissão de administrador.');
+        
+        const res = NextResponse.redirect(loginUrl);
+        // Exclui os cookies do Supabase na resposta para deslogar a sessão local
+        const cookiesToDelete = request.cookies.getAll().filter(c => c.name.includes('auth-token'));
+        for (const cookie of cookiesToDelete) {
+          res.cookies.set(cookie.name, '', { maxAge: 0 });
+        }
+        return res;
+      }
+    }
+
     // Se estiver logado e tentar acessar a página de login
     if (user && request.nextUrl.pathname === '/admin/login') {
+      const role = user.user_metadata?.role;
+      if (role !== "admin") {
+        const loginUrl = new URL('/admin/login', request.url);
+        loginUrl.searchParams.set('error', 'Acesso negado: Você não possui permissão de administrador.');
+        const res = NextResponse.redirect(loginUrl);
+        const cookiesToDelete = request.cookies.getAll().filter(c => c.name.includes('auth-token'));
+        for (const cookie of cookiesToDelete) {
+          res.cookies.set(cookie.name, '', { maxAge: 0 });
+        }
+        return res;
+      }
       return NextResponse.redirect(new URL('/admin/products', request.url))
     }
   }
