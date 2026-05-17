@@ -36,6 +36,7 @@ export default async function HomePage() {
     .select(`
       id,
       name,
+      slug,
       price,
       price_pix,
       discount_label,
