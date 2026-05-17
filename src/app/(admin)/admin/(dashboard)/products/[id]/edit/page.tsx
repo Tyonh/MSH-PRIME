@@ -10,7 +10,7 @@ export default async function EditProductPage({ params }: Props) {
   const { id } = await params;
   const supabase = createAdminClient();
 
-  // Busca produto + imagem principal + objetivo atual
+  // Busca produto + imagem principal + objetivo atual 1
   const [
     { data: product },
     { data: categories },
