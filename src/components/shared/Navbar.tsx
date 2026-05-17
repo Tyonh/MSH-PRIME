@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { ShoppingCart, Menu, X } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 
@@ -9,6 +10,8 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const { totalItems, toggleCart } = useCart();
+  const pathname = usePathname();
+  const isHome = pathname === "/";
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 50);
@@ -33,7 +36,7 @@ export default function Navbar() {
     <>
       <nav
         className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-          isScrolled || menuOpen ? "bg-black py-3 shadow-2xl" : "bg-transparent py-4 md:py-6"
+          !isHome || isScrolled || menuOpen ? "bg-black py-3 shadow-2xl" : "bg-transparent py-4 md:py-6"
         }`}
       >
         <div className="container mx-auto px-4 md:px-6 flex justify-between items-center">

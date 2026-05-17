@@ -1,7 +1,7 @@
 "use client";
 
 import { useCart } from "@/context/CartContext";
-import { ShoppingCart, Check } from "lucide-react";
+import { ShoppingCart, Check, Plus } from "lucide-react";
 import { useState } from "react";
 
 interface Props {
@@ -14,15 +14,18 @@ interface Props {
     stock_quantity: number;
   };
   className?: string;
+  variant?: "default" | "compact";
 }
 
-export function AddToCartButton({ product, className = "" }: Props) {
+export function AddToCartButton({ product, className = "", variant = "default" }: Props) {
   const { addItem } = useCart();
   const [added, setAdded] = useState(false);
 
   const disabled = product.stock_quantity === 0;
 
-  const handleClick = () => {
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (disabled) return;
     addItem({
       id: product.id,
@@ -34,6 +37,24 @@ export function AddToCartButton({ product, className = "" }: Props) {
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
   };
+
+  if (variant === "compact") {
+    return (
+      <button
+        onClick={handleClick}
+        disabled={disabled}
+        className={`h-10 w-10 md:h-12 md:w-12 rounded-full border border-zinc-100 bg-white shadow-xl flex items-center justify-center transition-all ${
+          disabled 
+            ? "bg-zinc-100 text-zinc-300 cursor-not-allowed" 
+            : added 
+            ? "bg-brand-green text-white" 
+            : "text-brand-blue hover:scale-110 active:scale-95"
+        } ${className}`}
+      >
+        {added ? <Check className="h-5 w-5 md:h-6 md:w-6" /> : <ShoppingCart className="h-5 w-5 md:h-6 md:w-6" />}
+      </button>
+    );
+  }
 
   return (
     <button

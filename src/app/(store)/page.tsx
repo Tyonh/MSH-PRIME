@@ -142,58 +142,43 @@ export default async function HomePage() {
           </div>
 
           {featuredProducts && featuredProducts.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 gap-2 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
               {featuredProducts.map((product) => {
                 const imgs = (product.product_images as { image_url: string; display_order: number }[]) ?? [];
                 const mainImg = imgs.sort((a, b) => a.display_order - b.display_order)[0]?.image_url ?? null;
+                
+                // Cálculo de preço para formato Mercado Livre
+                const displayPrice = product.price_pix ? Number(product.price_pix) : Number(product.price);
+                const integerPart = Math.floor(displayPrice);
+                const decimalPart = Math.round((displayPrice - integerPart) * 100).toString().padStart(2, '0');
+
+                const discountPercent = product.price_pix && product.price > product.price_pix
+                  ? Math.round(((product.price - product.price_pix) / product.price) * 100)
+                  : null;
+
                 return (
-                  <div key={product.id} className="group bg-white flex flex-col shadow-sm hover:shadow-xl transition-all border-b-4 border-transparent hover:border-brand-blue">
-                    <div className="relative aspect-square overflow-hidden bg-zinc-50">
-                      {product.discount_label && (
-                        <div className="absolute top-4 left-4 z-10">
-                          <span className="bg-brand-red text-white text-[10px] font-black px-3 py-1 uppercase italic tracking-widest shadow-lg">
-                            {product.discount_label}
-                          </span>
-                        </div>
-                      )}
-                      {mainImg ? (
-                        <Image
-                          src={mainImg}
-                          alt={product.name}
-                          fill
-                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                          className="object-contain p-8 group-hover:scale-105 transition-transform duration-500"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-zinc-100">
-                          <Dumbbell className="h-16 w-16 text-zinc-300" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="p-6 flex flex-col flex-1">
-                      <h3 className="font-black italic uppercase tracking-tight text-zinc-950 group-hover:text-brand-blue transition-colors leading-tight mb-4 text-base">
-                        {product.name}
-                      </h3>
-                      <div className="mt-auto space-y-4">
-                        <div>
-                          {product.price_pix ? (
-                            <>
-                              <p className="text-zinc-400 text-xs font-bold line-through mb-1">
-                                R$ {Number(product.price).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                              </p>
-                              <div className="flex items-baseline gap-2">
-                                <span className="text-[10px] font-black text-brand-green uppercase italic">No PIX</span>
-                                <p className="text-3xl font-black italic text-zinc-950 leading-none">
-                                  R$ {Number(product.price_pix).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                                </p>
-                              </div>
-                            </>
-                          ) : (
-                            <p className="text-3xl font-black italic text-zinc-950 leading-none">
-                              R$ {Number(product.price).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                            </p>
-                          )}
-                        </div>
+                  <div key={product.id} className="group bg-white flex flex-col hover:shadow-lg transition-all border border-zinc-100 relative overflow-hidden">
+                    
+                    {/* Imagem (Formato Quadrado Padrão Mercado Livre, Padded via Inset para evitar bug do Next.js Image) */}
+                    <div className="relative aspect-square w-full overflow-hidden bg-white block border-b border-zinc-100">
+                      <Link href={`/produtos/${product.slug}`} className="absolute inset-4 block">
+                        {mainImg ? (
+                          <Image
+                            src={mainImg}
+                            alt={product.name}
+                            fill
+                            sizes="(max-width: 768px) 50vw, 25vw"
+                            className="object-contain group-hover:scale-105 transition-transform duration-500"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-zinc-100">
+                            <Dumbbell className="h-10 w-10 text-zinc-300" />
+                          </div>
+                        )}
+                      </Link>
+
+                      {/* Botão de Carrinho Flutuante Circular */}
+                      <div className="absolute bottom-2 right-2 z-10">
                         <AddToCartButton
                           product={{
                             id: product.id,
@@ -203,8 +188,50 @@ export default async function HomePage() {
                             image_url: mainImg,
                             stock_quantity: product.stock_quantity,
                           }}
+                          variant="compact"
                         />
                       </div>
+
+                      {/* Badge de Desconto */}
+                      {product.discount_label && (
+                        <div className="absolute top-3 left-3 z-10">
+                          <span className="bg-brand-red text-white text-[9px] font-black px-2.5 py-1 uppercase italic tracking-widest shadow-md">
+                            {product.discount_label}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Conteúdo */}
+                    <div className="p-3 flex flex-col flex-1 min-w-0 bg-white">
+                      {/* Título de 2 Linhas */}
+                      <Link href={`/produtos/${product.slug}`}>
+                        <h3 className="font-normal text-zinc-900 text-xs md:text-sm leading-tight line-clamp-2 mb-1 hover:text-brand-blue transition-colors">
+                          {product.name}
+                        </h3>
+                      </Link>
+
+                      {/* Preços */}
+                      <div className="mt-auto">
+                        {product.price_pix && product.price > product.price_pix ? (
+                          <div className="space-y-0.5">
+                            <p className="text-zinc-400 text-[10px] font-bold line-through">
+                              R$ {Number(product.price).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                            </p>
+                            <div className="flex items-baseline gap-1.5">
+                              <span className="text-[9px] font-black text-brand-green uppercase italic shrink-0">No PIX</span>
+                              <p className="text-base md:text-xl font-black italic text-zinc-950 leading-none">
+                                R$ {Number(product.price_pix).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                              </p>
+                            </div>
+                          </div>
+                        ) : (
+                          <p className="text-base md:text-xl font-black italic text-zinc-950 leading-none">
+                            R$ {Number(product.price).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                          </p>
+                        )}
+                      </div>
+
                     </div>
                   </div>
                 );

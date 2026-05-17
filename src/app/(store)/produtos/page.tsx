@@ -1,8 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Search, Filter, Dumbbell, Tag, Award, Target } from "lucide-react";
+import { Suspense } from "react";
+import { Search, Filter, Dumbbell, Tag, Award, Target, ChevronLeft, ChevronRight } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { AddToCartButton } from "@/components/store/AddToCartButton";
+import ProductFilters from "@/components/store/ProductFilters";
 
 interface Props {
   searchParams: Promise<{
@@ -10,12 +12,16 @@ interface Props {
     objetivo?: string;
     marca?: string;
     categoria?: string;
+    pagina?: string;
   }>;
 }
 
 export default async function ProductsPage({ searchParams }: Props) {
-  const { busca, objetivo, marca, categoria } = await searchParams;
+  const { busca, objetivo, marca, categoria, pagina } = await searchParams;
   const supabase = createAdminClient();
+  
+  const currentPage = Number(pagina) || 1;
+  const pageSize = 20;
 
   // 1. Busca dados para os filtros
   const [
@@ -28,7 +34,7 @@ export default async function ProductsPage({ searchParams }: Props) {
     supabase.from("categories").select("id, name, slug").order("name"),
   ]);
 
-  // 2. Query de produtos
+  // 2. Query de produtos (Contagem total para paginação)
   let query = supabase
     .from("products")
     .select(`
@@ -45,7 +51,7 @@ export default async function ProductsPage({ searchParams }: Props) {
       brands ( id, name, slug ),
       categories ( id, name ),
       product_objectives ( objective_id )
-    `)
+    `, { count: "exact" })
     .eq("is_visible", true)
     .order("created_at", { ascending: false });
 
@@ -53,28 +59,43 @@ export default async function ProductsPage({ searchParams }: Props) {
   if (marca) query = query.eq("brand_id", marca);
   if (categoria) query = query.eq("category_id", categoria);
 
-  const { data: allProducts } = await query;
-
-  // Filtro de objetivo (N:N — feito em memória)
+  // Filtro de objetivo (N:N) - Infelizmente o Supabase não filtra bem N:N direto na query sem joins complexos
+  // Se houver filtro de objetivo, buscaremos tudo e filtraremos em memória (para simplificar o código atual)
+  // Mas para paginação real, o ideal seria uma query SQL customizada ou RPC.
+  // Vamos manter a lógica de memória por enquanto, mas aplicar o range depois.
+  
+  const { data: allProducts, count } = await query;
   let products = allProducts ?? [];
+
   if (objetivo) {
     products = products.filter((p) =>
       (p.product_objectives as any[])?.some((obj: any) => obj.objective_id === objetivo)
     );
   }
 
+  const totalCount = objetivo ? products.length : (count || 0);
+  const totalPages = Math.ceil(totalCount / pageSize);
+  
+  // Aplica "paginação" manual se houver filtro de objetivo, ou usa o range se não houver
+  const paginatedProducts = products.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
   // Helper para manter filtros ao clicar
-  const buildFilterUrl = (key: string, value: string) => {
+  const buildFilterUrl = (key: string, value: string | number) => {
     const params = new URLSearchParams();
     if (busca) params.set("busca", busca);
     if (objetivo) params.set("objetivo", objetivo);
     if (marca) params.set("marca", marca);
     if (categoria) params.set("categoria", categoria);
-    // Toggle: se já selecionado, remove; se não, define
-    if (params.get(key) === value) {
-      params.delete(key);
+    
+    if (key === "pagina") {
+      params.set("pagina", value.toString());
     } else {
-      params.set(key, value);
+      params.set("pagina", "1"); // Reseta para pag 1 ao trocar filtro
+      if (params.get(key) === value) {
+        params.delete(key);
+      } else {
+        params.set(key, value.toString());
+      }
     }
     const qs = params.toString();
     return `/produtos${qs ? `?${qs}` : ""}`;
@@ -107,33 +128,19 @@ export default async function ProductsPage({ searchParams }: Props) {
         <div className="grid lg:grid-cols-4 gap-6 md:gap-10">
 
           {/* ── FILTROS ── */}
-          <aside className="space-y-4 md:space-y-6">
-            {/* Mobile: filtros em linha horizontal scrollável */}
-            <div className="flex lg:hidden gap-2 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
-              {categories?.map((cat) => (
-                <Link key={cat.id} href={buildFilterUrl("categoria", cat.id)}
-                  className={`shrink-0 px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${
-                    categoria === cat.id ? "bg-purple-600 text-white" : "bg-white text-zinc-400 border border-zinc-100"
-                  }`}>
-                  {cat.name}
-                </Link>
-              ))}
-              {brands?.map((b) => (
-                <Link key={b.id} href={buildFilterUrl("marca", b.id)}
-                  className={`shrink-0 px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${
-                    marca === b.id ? "bg-orange-500 text-white" : "bg-white text-zinc-400 border border-zinc-100"
-                  }`}>
-                  {b.name}
-                </Link>
-              ))}
-              {objectives?.map((obj) => (
-                <Link key={obj.id} href={buildFilterUrl("objetivo", obj.id)}
-                  className={`shrink-0 px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${
-                    objetivo === obj.id ? "bg-brand-blue text-white" : "bg-white text-zinc-400 border border-zinc-100"
-                  }`}>
-                  {obj.name}
-                </Link>
-              ))}
+          <aside className="lg:block lg:sticky lg:top-28 lg:h-fit space-y-4 md:space-y-6">
+            {/* Mobile: filtros agrupados */}
+            <div className="lg:hidden w-full">
+              <Suspense fallback={<div className="h-16 bg-white animate-pulse" />}>
+                <ProductFilters
+                  categories={categories ?? []}
+                  brands={brands ?? []}
+                  objectives={objectives ?? []}
+                  activeCategory={categoria}
+                  activeBrand={marca}
+                  activeObjective={objetivo}
+                />
+              </Suspense>
             </div>
             {/* Busca */}
             <div className="hidden lg:block bg-white p-5 shadow-sm border border-zinc-100">
@@ -232,104 +239,166 @@ export default async function ProductsPage({ searchParams }: Props) {
             {/* Contador */}
             <div className="mb-6 flex items-center justify-between">
               <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
-                {products.length} produto{products.length !== 1 ? "s" : ""} encontrado{products.length !== 1 ? "s" : ""}
+                {totalCount} produto{totalCount !== 1 ? "s" : ""} encontrado{totalCount !== 1 ? "s" : ""}
               </p>
+              {totalPages > 1 && (
+                <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+                  Página {currentPage} de {totalPages}
+                </p>
+              )}
             </div>
 
-            {products.length > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-6">
-                {products.map((product) => {
-                  const imgs = (product.product_images as any[]) ?? [];
-                  const mainImg = imgs.sort((a: any, b: any) => a.display_order - b.display_order)[0]?.image_url ?? null;
-                  const brandName = (product.brands as any)?.name;
+            {paginatedProducts.length > 0 ? (
+              <>
+                <div className="grid grid-cols-1 gap-2 sm:gap-4 md:grid-cols-3 xl:grid-cols-4">
+                  {paginatedProducts.map((product) => {
+                    const imgs = (product.product_images as any[]) ?? [];
+                    const mainImg = imgs.sort((a: any, b: any) => a.display_order - b.display_order)[0]?.image_url ?? null;
+                    const brandName = (product.brands as any)?.name;
 
-                  return (
-                    <div key={product.id} className="group bg-white flex flex-col shadow-sm hover:shadow-xl transition-all border-b-4 border-transparent hover:border-brand-blue relative">
+                    // Cálculo de preço para formato Mercado Livre (supresso de centavos)
+                    const displayPrice = product.price_pix ? Number(product.price_pix) : Number(product.price);
+                    const integerPart = Math.floor(displayPrice);
+                    const decimalPart = Math.round((displayPrice - integerPart) * 100).toString().padStart(2, '0');
 
-                      {/* Badge de Desconto */}
-                      {product.discount_label && (
-                        <div className="absolute top-4 left-4 z-10">
-                          <span className="bg-brand-red text-white text-[10px] font-black px-3 py-1 uppercase italic tracking-widest shadow-lg">
-                            {product.discount_label}
-                          </span>
+                    // Porcentagem de desconto se houver preço pix menor que o original
+                    const discountPercent = product.price_pix && product.price > product.price_pix
+                      ? Math.round(((product.price - product.price_pix) / product.price) * 100)
+                      : null;
+
+                    return (
+                      <div key={product.id} className="group bg-white flex flex-row md:flex-col hover:shadow-lg transition-all border border-zinc-100 relative overflow-hidden">
+                        
+                        {/* Imagem (Quadrada 128px à esquerda no Mobile / Grid Full no Desktop, Padded via Inset) */}
+                        <div className="relative aspect-square w-32 md:w-full shrink-0 overflow-hidden bg-white block border-r md:border-r-0 md:border-b border-zinc-100">
+                          <Link href={`/produtos/${product.slug}`} className="absolute inset-4 block">
+                            {mainImg ? (
+                              <Image
+                                src={mainImg}
+                                alt={product.name}
+                                fill
+                                sizes="(max-width: 768px) 120px, 25vw"
+                                className="object-contain group-hover:scale-105 transition-transform duration-500"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-zinc-100">
+                                <Dumbbell className="h-10 w-10 text-zinc-300" />
+                              </div>
+                            )}
+                          </Link>
+                          
+                          {/* Botão de Carrinho Flutuante Circular */}
+                          <div className="absolute bottom-2 right-2 z-10">
+                            <AddToCartButton
+                              product={{
+                                id: product.id,
+                                name: product.name,
+                                price: Number(product.price),
+                                price_pix: product.price_pix ? Number(product.price_pix) : null,
+                                image_url: mainImg,
+                                stock_quantity: product.stock_quantity,
+                              }}
+                              variant="compact"
+                            />
+                          </div>
+
+                          {/* Badge de Desconto */}
+                          {product.discount_label && (
+                            <div className="absolute top-3 left-3 z-10">
+                              <span className="bg-brand-red text-white text-[9px] font-black px-2.5 py-1 uppercase italic tracking-widest shadow-md">
+                                {product.discount_label}
+                              </span>
+                            </div>
+                          )}
+
+                          {product.stock_quantity === 0 && (
+                            <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-20">
+                              <span className="bg-zinc-950 text-white px-2 py-1 font-black uppercase italic text-[8px]">Esgotado</span>
+                            </div>
+                          )}
                         </div>
-                      )}
 
-                      {/* Imagem */}
-                      <Link href={`/produtos/${product.slug}`} className="relative aspect-square overflow-hidden bg-zinc-50 block">
-                        {mainImg ? (
-                          <Image
-                            src={mainImg}
-                            alt={product.name}
-                            fill
-                            sizes="(max-width: 768px) 100vw, 33vw"
-                            className="object-contain p-8 group-hover:scale-105 transition-transform duration-500"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-zinc-100">
-                            <Dumbbell className="h-20 w-20 text-zinc-300" />
-                          </div>
-                        )}
-                        {product.stock_quantity > 0 && product.stock_quantity < 5 && (
-                          <div className="absolute bottom-0 left-0 right-0 bg-orange-500/90 py-2 text-center">
-                            <span className="text-white text-[10px] font-black uppercase italic">Últimas {product.stock_quantity} un!</span>
-                          </div>
-                        )}
-                        {product.stock_quantity === 0 && (
-                          <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-20">
-                            <span className="bg-zinc-950 text-white px-4 py-2 font-black uppercase italic text-xs">Esgotado</span>
-                          </div>
-                        )}
-                      </Link>
+                        {/* Conteúdo */}
+                        <div className="p-3 flex flex-col flex-1 min-w-0 bg-white">
+                          {/* Título de 2 Linhas */}
+                          <Link href={`/produtos/${product.slug}`}>
+                            <h3 className="font-normal text-zinc-900 text-xs md:text-sm leading-tight line-clamp-2 mb-1 hover:text-brand-blue transition-colors">
+                              {product.name}
+                            </h3>
+                          </Link>
 
-                      {/* Conteúdo */}
-                      <div className="p-3 md:p-6 flex flex-col flex-1">
-                        {brandName && (
-                          <span className="text-[8px] md:text-[10px] font-black text-brand-blue uppercase tracking-widest mb-1 md:mb-2">{brandName}</span>
-                        )}
-                        <Link href={`/produtos/${product.slug}`}>
-                          <h3 className="font-black italic uppercase tracking-tight text-zinc-950 group-hover:text-brand-blue transition-colors leading-tight mb-3 md:mb-6 text-xs md:text-lg min-h-0 md:min-h-[3.5rem] line-clamp-2">
-                            {product.name}
-                          </h3>
-                        </Link>
+                          {/* Marca com Verificado */}
+                          {brandName && (
+                            <div className="flex items-center gap-1 mb-1.5">
+                              <span className="text-[9px] md:text-[10px] font-black text-zinc-400 uppercase tracking-widest">{brandName}</span>
+                              <span className="inline-flex items-center justify-center bg-brand-blue text-white rounded-full w-3.5 h-3.5 text-[7px] font-bold">✓</span>
+                            </div>
+                          )}
 
-                        <div className="mt-auto space-y-4">
-                          <div>
-                            {product.price_pix ? (
-                              <>
-                                <p className="text-zinc-400 text-[10px] md:text-xs font-bold line-through mb-0.5 md:mb-1">
+                          {/* Preços (Original e com Desconto se houver) */}
+                          <div className="mt-auto">
+                            {product.price_pix && product.price > product.price_pix ? (
+                              <div className="space-y-0.5">
+                                <p className="text-zinc-400 text-[10px] font-bold line-through">
                                   R$ {Number(product.price).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                                 </p>
-                                <div className="flex items-baseline gap-1 md:gap-2">
-                                  <span className="text-[8px] md:text-[10px] font-black text-brand-green uppercase italic">PIX</span>
-                                  <p className="text-xl md:text-3xl font-black italic text-zinc-950 leading-none">
+                                <div className="flex items-baseline gap-1.5">
+                                  <span className="text-[9px] font-black text-brand-green uppercase italic shrink-0">No PIX</span>
+                                  <p className="text-base md:text-xl font-black italic text-zinc-950 leading-none">
                                     R$ {Number(product.price_pix).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                                   </p>
                                 </div>
-                              </>
+                              </div>
                             ) : (
-                              <p className="text-xl md:text-3xl font-black italic text-zinc-950 leading-none">
+                              <p className="text-base md:text-xl font-black italic text-zinc-950 leading-none">
                                 R$ {Number(product.price).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                               </p>
                             )}
                           </div>
 
-                          <AddToCartButton
-                            product={{
-                              id: product.id,
-                              name: product.name,
-                              price: Number(product.price),
-                              price_pix: product.price_pix ? Number(product.price_pix) : null,
-                              image_url: mainImg,
-                              stock_quantity: product.stock_quantity,
-                            }}
-                          />
                         </div>
                       </div>
+                    );
+                  })}
+                </div>
+
+                {/* Paginação */}
+                {totalPages > 1 && (
+                  <div className="mt-12 flex justify-center items-center gap-4">
+                    {currentPage > 1 ? (
+                      <Link 
+                        href={buildFilterUrl("pagina", currentPage - 1)}
+                        className="flex items-center gap-2 px-6 py-3 bg-white border border-zinc-100 text-zinc-950 font-black uppercase italic text-[10px] tracking-widest hover:bg-zinc-50 transition-all shadow-sm"
+                      >
+                        <ChevronLeft className="h-4 w-4" /> Anterior
+                      </Link>
+                    ) : (
+                      <div className="flex items-center gap-2 px-6 py-3 bg-zinc-50 text-zinc-300 font-black uppercase italic text-[10px] tracking-widest cursor-not-allowed">
+                        <ChevronLeft className="h-4 w-4" /> Anterior
+                      </div>
+                    )}
+
+                    <div className="flex items-center gap-2">
+                      <span className="w-10 h-10 flex items-center justify-center bg-brand-blue text-white font-black italic text-xs shadow-lg shadow-brand-blue/20">
+                        {currentPage}
+                      </span>
                     </div>
-                  );
-                })}
-              </div>
+
+                    {currentPage < totalPages ? (
+                      <Link 
+                        href={buildFilterUrl("pagina", currentPage + 1)}
+                        className="flex items-center gap-2 px-6 py-3 bg-white border border-zinc-100 text-zinc-950 font-black uppercase italic text-[10px] tracking-widest hover:bg-zinc-50 transition-all shadow-sm"
+                      >
+                        Próxima <ChevronRight className="h-4 w-4" />
+                      </Link>
+                    ) : (
+                      <div className="flex items-center gap-2 px-6 py-3 bg-zinc-50 text-zinc-300 font-black uppercase italic text-[10px] tracking-widest cursor-not-allowed">
+                        Próxima <ChevronRight className="h-4 w-4" />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
             ) : (
               <div className="bg-white p-10 md:p-20 text-center border-2 border-dashed border-zinc-100">
                 <Filter className="h-10 w-10 md:h-16 md:w-16 text-zinc-100 mx-auto mb-4 md:mb-6" />

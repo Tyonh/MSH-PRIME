@@ -28,7 +28,7 @@ export default async function CategoriesPage() {
             "use server";
             await createCategory(formData);
           }}
-          className="flex gap-3"
+          className="flex flex-col sm:flex-row gap-3"
         >
           <div className="flex-1 relative">
             <Tag className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
@@ -42,7 +42,7 @@ export default async function CategoriesPage() {
           </div>
           <button
             type="submit"
-            className="px-6 py-3 bg-brand-blue text-white font-black italic uppercase text-sm flex items-center gap-2 hover:bg-zinc-900 transition-colors"
+            className="px-6 py-3 bg-brand-blue text-white font-black italic uppercase text-sm flex items-center justify-center gap-2 hover:bg-zinc-900 transition-colors w-full sm:w-auto shrink-0"
           >
             <Plus className="h-4 w-4" />
             Adicionar
@@ -50,36 +50,53 @@ export default async function CategoriesPage() {
         </form>
       </div>
 
-      {/* Lista */}
-      <div className="bg-white shadow-sm border border-zinc-100 overflow-hidden">
-        <table className="w-full text-left">
-          <thead>
-            <tr className="border-b-2 border-zinc-100">
-              <th className="px-6 py-4 font-black uppercase italic text-[10px] tracking-widest text-zinc-400">Nome</th>
-              <th className="px-6 py-4 font-black uppercase italic text-[10px] tracking-widest text-zinc-400">Slug</th>
-              <th className="px-6 py-4 text-right font-black uppercase italic text-[10px] tracking-widest text-zinc-400">Ação</th>
-            </tr>
-          </thead>
-          <tbody>
-            {categories?.map((cat) => (
-              <tr key={cat.id} className="border-b border-zinc-50 hover:bg-zinc-50 transition-colors">
-                <td className="px-6 py-4 font-black italic uppercase text-zinc-950">{cat.name}</td>
-                <td className="px-6 py-4 text-zinc-400 text-xs font-bold font-mono">{cat.slug}</td>
-                <td className="px-6 py-4 text-right">
+      {/* Listagem */}
+      {categories && categories.length > 0 ? (
+        <>
+          {/* Tabela Desktop */}
+          <div className="hidden md:block bg-white shadow-sm border border-zinc-100 overflow-hidden">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b-2 border-zinc-100">
+                  <th className="px-6 py-4 font-black uppercase italic text-[10px] tracking-widest text-zinc-400">Nome</th>
+                  <th className="px-6 py-4 font-black uppercase italic text-[10px] tracking-widest text-zinc-400">Slug</th>
+                  <th className="px-6 py-4 text-right font-black uppercase italic text-[10px] tracking-widest text-zinc-400">Ação</th>
+                </tr>
+              </thead>
+              <tbody>
+                {categories.map((cat) => (
+                  <tr key={cat.id} className="border-b border-zinc-50 hover:bg-zinc-50 transition-colors">
+                    <td className="px-6 py-4 font-black italic uppercase text-zinc-950">{cat.name}</td>
+                    <td className="px-6 py-4 text-zinc-400 text-xs font-bold font-mono">{cat.slug}</td>
+                    <td className="px-6 py-4 text-right">
+                      <DeleteItemButton id={cat.id} name={cat.name} onDelete={deleteCategory} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Lista Mobile */}
+          <div className="md:hidden space-y-3">
+            {categories.map((cat) => (
+              <div key={cat.id} className="bg-white p-4 border border-zinc-100 flex items-center justify-between shadow-sm">
+                <div className="min-w-0 flex-1 pr-4">
+                  <p className="font-black italic uppercase text-sm text-zinc-950 truncate">{cat.name}</p>
+                  <p className="text-[10px] text-zinc-400 font-mono mt-0.5 truncate">{cat.slug}</p>
+                </div>
+                <div className="shrink-0">
                   <DeleteItemButton id={cat.id} name={cat.name} onDelete={deleteCategory} />
-                </td>
-              </tr>
+                </div>
+              </div>
             ))}
-            {(!categories || categories.length === 0) && (
-              <tr>
-                <td colSpan={3} className="px-6 py-12 text-center text-zinc-400 font-bold text-sm">
-                  Nenhuma categoria cadastrada ainda.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+          </div>
+        </>
+      ) : (
+        <div className="bg-white p-12 border border-zinc-100 shadow-sm text-center text-zinc-400 font-bold text-sm">
+          Nenhuma categoria cadastrada ainda.
+        </div>
+      )}
     </div>
   );
 }

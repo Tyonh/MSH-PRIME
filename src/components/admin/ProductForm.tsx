@@ -245,7 +245,7 @@ export default function ProductForm({ categories, brands, objectives, product }:
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Preço PIX */}
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
@@ -314,7 +314,7 @@ export default function ProductForm({ categories, brands, objectives, product }:
             <h2 className="font-black italic uppercase text-zinc-950 tracking-tight text-lg border-b border-zinc-100 pb-4">
               Classificação
             </h2>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
                   <Package className="h-3 w-3" /> Categoria

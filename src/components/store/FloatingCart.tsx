@@ -43,7 +43,7 @@ export function FloatingCart() {
 
       {/* Painel Lateral */}
       <div
-        className={`fixed top-0 right-0 h-full w-full max-w-md bg-white z-[70] shadow-2xl transform transition-transform duration-300 ${
+        className={`fixed top-0 right-0 h-[100dvh] w-full max-w-md bg-white z-[70] shadow-2xl transform transition-transform duration-300 ${
           isOpen ? "translate-x-0" : "translate-x-full"
         } flex flex-col`}
       >
@@ -126,7 +126,7 @@ export function FloatingCart() {
 
         {/* Footer */}
         {items.length > 0 && (
-          <div className="border-t border-zinc-100 p-6 space-y-4 shrink-0 bg-white">
+          <div className="border-t border-zinc-100 p-6 pb-8 sm:pb-6 space-y-4 shrink-0 bg-white">
             <div className="flex justify-between items-center">
               <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Total do Pedido</span>
               <span className="text-2xl font-black italic text-zinc-950">
