@@ -191,3 +191,81 @@ export async function deleteProduct(id: string) {
   revalidatePath("/admin/products");
   revalidatePath("/");
 }
+
+export async function duplicateProduct(id: string) {
+  const admin = createAdminClient();
+
+  // 1. Busca o produto original
+  const { data: original, error: fetchErr } = await admin
+    .from("products")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (fetchErr || !original) {
+    console.error("Erro ao buscar produto original:", fetchErr);
+    return { error: "Produto original não encontrado" };
+  }
+
+  // 2. Define o novo nome e slug único
+  const newName = `${original.name} (CÓPIA)`;
+  const newSlug = `${toSlug(newName)}-${Date.now()}`;
+
+  // 3. Insere o produto duplicado
+  const { data: copy, error: insertErr } = await admin
+    .from("products")
+    .insert([{
+      name: newName,
+      slug: newSlug,
+      description: original.description,
+      price: original.price,
+      price_pix: original.price_pix,
+      price_card: original.price_card,
+      discount_label: original.discount_label,
+      stock_quantity: original.stock_quantity,
+      category_id: original.category_id,
+      brand_id: original.brand_id,
+      is_visible: false, // Inicia oculto por segurança para revisão
+      is_featured: false,
+    }])
+    .select("id")
+    .single();
+
+  if (insertErr || !copy) {
+    console.error("Erro ao duplicar produto:", insertErr);
+    return { error: `Erro ao duplicar: ${insertErr?.message}` };
+  }
+
+  // 4. Copia as imagens associadas
+  const { data: images } = await admin
+    .from("product_images")
+    .select("image_url, display_order")
+    .eq("product_id", id);
+
+  if (images && images.length > 0) {
+    const imagesToInsert = images.map(img => ({
+      product_id: copy.id,
+      image_url: img.image_url,
+      display_order: img.display_order,
+    }));
+    await admin.from("product_images").insert(imagesToInsert);
+  }
+
+  // 5. Copia os objetivos associados
+  const { data: objectives } = await admin
+    .from("product_objectives")
+    .select("objective_id")
+    .eq("product_id", id);
+
+  if (objectives && objectives.length > 0) {
+    const objectivesToInsert = objectives.map(obj => ({
+      product_id: copy.id,
+      objective_id: obj.objective_id,
+    }));
+    await admin.from("product_objectives").insert(objectivesToInsert);
+  }
+
+  revalidatePath("/admin/products");
+  revalidatePath("/");
+  return { success: true };
+}

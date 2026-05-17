@@ -1,7 +1,7 @@
 "use client";
 
-import { Eye, EyeOff, Star, Trash2, Edit3 } from "lucide-react";
-import { toggleVisibility, toggleFeatured, deleteProduct } from "@/lib/actions/products";
+import { Eye, EyeOff, Star, Trash2, Edit3, Copy } from "lucide-react";
+import { toggleVisibility, toggleFeatured, deleteProduct, duplicateProduct } from "@/lib/actions/products";
 import Link from "next/link";
 import { useTransition } from "react";
 
@@ -48,6 +48,25 @@ export function ProductActions({ product }: { product: Product }) {
         }`}
       >
         <Star className="h-5 w-5" />
+      </button>
+
+      {/* Duplicar Produto */}
+      <button
+        title="Duplicar produto"
+        disabled={isPending}
+        onClick={() => {
+          if (confirm(`Deseja duplicar o produto "${product.name}"?`)) {
+            startTransition(async () => {
+              const res = await duplicateProduct(product.id);
+              if (res?.error) {
+                alert(res.error);
+              }
+            });
+          }
+        }}
+        className="p-2 text-zinc-400 hover:text-purple-600 hover:bg-purple-50 transition-colors rounded"
+      >
+        <Copy className="h-5 w-5" />
       </button>
 
       {/* Editar */}
